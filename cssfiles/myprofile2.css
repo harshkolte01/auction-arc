@@ -267,51 +267,7 @@
     background-color: #f44336;
   }
 
-  /* Mobile Styles */
-@media(max-width: 700px) {
-  nav {
-    flex-direction: row;
-  }
-
-  .nav-links {
-    position: absolute;
-    background: #f44336;
-    height: 100vh;
-    width: 200px;
-    top: 0;
-    right: -200px;
-    z-index: 2;
-    transition: right 0.3s;
-  }
-
-  .nav-links ul li {
-    display: block;
-  }
-
-  nav .fa {
-    display: block;
-    color: #fff;
-    margin: 10px;
-    font-size: 22px;
-    cursor: pointer;
-  }
-
-  .introduction h1 {
-    font-size: 2rem;
-  }
-
-  .introduction h2 {
-    font-size: 1.5rem;
-  }
-
-  .introduction p {
-    font-size: 1rem;
-  }
-
-  .profile-container {
-    width: 80%;
-  }
-}
+ 
 
 /* Larger Screen Styles */
 @media(min-width: 700px) {

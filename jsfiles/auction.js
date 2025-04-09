@@ -5,7 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const db = getDatabase();
     const auth = getAuth();
     const auctionGrid = document.getElementById('auctionGrid');
+    const searchForm = document.getElementById('searchForm');
+    const searchInput = document.getElementById('searchInput');
     let currentUserType = null;
+    let allProducts = {}; // Store all products for filtering
 
     // Fetch user type
     onAuthStateChanged(auth, (user) => {
@@ -14,10 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
             get(userRef).then((snapshot) => {
                 if (snapshot.exists()) {
                     currentUserType = snapshot.val().userType;
-                    console.log(currentUserType);
                     loadProducts(); // Load products after determining the user type
-                } else {
-                    console.error('User type not found.');
                 }
             }).catch((error) => {
                 console.error('Error fetching user type:', error);
@@ -30,50 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadProducts() {
         const productsRef = ref(db, 'products');
         
-        // Listen for real-time updates to products
         onValue(productsRef, (snapshot) => {
             if (snapshot.exists()) {
-                const products = snapshot.val();
-                auctionGrid.innerHTML = ''; // Clear existing items
-                for (const productId in products) {
-                    const product = products[productId];
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'auction-item';
-                    itemDiv.innerHTML = `
-                        <img src="${product.productImageURL}" alt="${product.productName}">
-                        <h3>${product.productName}</h3>
-                        <p>Starting Price: $${product.startingPrice}</p>
-                        <p>Category: ${product.category}</p>
-                        <p>Total Bid Time: ${product.bidTimeValue}</p>
-                        <button data-product-id="${productId}" class="start-bid-btn" ${product.bidStarted ? 'disabled' : ''}>Start Bid</button>
-                        <button data-product-id="${productId}" class="participate-btn" style="display: ${product.bidStarted ? 'block' : 'none'};">Participate</button>
-                    `;
-                    auctionGrid.appendChild(itemDiv);
-                }
-
-                // Add event listeners to "Start Bid" buttons
-                document.querySelectorAll('.start-bid-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        if (currentUserType === 'Admin') {
-                            const productId = e.target.getAttribute('data-product-id');
-                            startBid(productId);
-                        } else {
-                            alert('Only admins can start the bid.');
-                        }
-                    });
-                });
-
-                // Add event listeners to "Participate" buttons
-                document.querySelectorAll('.participate-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        if (currentUserType === 'Buyer' || currentUserType === 'Admin') {
-                            const productId = e.target.getAttribute('data-product-id');
-                            // Redirect to biditemon.html with product ID
-                            window.location.href = `biditemon.html?productId=${productId}`;
-                        }
-                    });
-                });
-
+                allProducts = snapshot.val();
+                displayProducts(allProducts); // Initial display of all products
             } else {
                 auctionGrid.innerHTML = '<p>No products available.</p>';
             }
@@ -83,20 +43,83 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function displayProducts(products) {
+        auctionGrid.innerHTML = ''; // Clear existing items
+        for (const productId in products) {
+            const product = products[productId];
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'auction-item';
+            itemDiv.innerHTML = `
+                <img src="${product.productImageURL}" alt="${product.productName}">
+                <h3>${product.productName}</h3>
+                <p>Starting Price: $${product.startingPrice}</p>
+                <p>Category: ${product.category}</p>
+                <p>Total Bid Time: ${product.bidTimeValue}</p>
+                <button data-product-id="${productId}" class="start-bid-btn" ${product.bidStarted ? 'disabled' : ''}>Start Bid</button>
+                <button data-product-id="${productId}" class="participate-btn" style="display: ${product.bidStarted ? 'block' : 'none'};">Participate</button>
+            `;
+            auctionGrid.appendChild(itemDiv);
+        }
+
+        // Add event listeners to buttons
+        addButtonListeners();
+    }
+
+    function addButtonListeners() {
+        document.querySelectorAll('.start-bid-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                if (currentUserType === 'Admin') {
+                    const productId = e.target.getAttribute('data-product-id');
+                    startBid(productId);
+                } else {
+                    alert('Only admins can start the bid.');
+                }
+            });
+        });
+
+        document.querySelectorAll('.participate-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                if (currentUserType === 'Buyer' || currentUserType === 'Admin') {
+                    const productId = e.target.getAttribute('data-product-id');
+                    window.location.href = `biditemon.html?productId=${productId}`;
+                }
+            });
+        });
+    }
+
     function startBid(productId) {
         const productRef = ref(db, `products/${productId}`);
-        const now = new Date().toISOString(); // Get current time in ISO format
+        const now = new Date().toISOString();
 
-        // Update the product to indicate the bid has started and store the bid start time
         update(productRef, {
             bidStarted: true,
             bidStartTime: now
         }).then(() => {
-            // Redirect to biditemon.html with product ID
             window.location.href = `biditemon.html?productId=${productId}`;
-            console.log(`Bid started for product: ${productId}`);
         }).catch((error) => {
             console.error('Error starting bid:', error);
         });
+    }
+
+    // Search functionality
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        filterAuctions(searchTerm);
+    });
+
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault(); // Prevent form submission
+    });
+
+    function filterAuctions(searchTerm) {
+        const filteredProducts = {};
+        for (const productId in allProducts) {
+            const product = allProducts[productId];
+            if (product.productName.toLowerCase().includes(searchTerm) || 
+                product.category.toLowerCase().includes(searchTerm)) {
+                filteredProducts[productId] = product;
+            }
+        }
+        displayProducts(filteredProducts);
     }
 });
