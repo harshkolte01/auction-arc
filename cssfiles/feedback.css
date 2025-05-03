@@ -108,7 +108,6 @@ nav .fa {
 }
 
 .star-rating {
-    direction: rtl;
     display: inline-flex;
     font-size: 24px;
     color: #ccc;
@@ -117,12 +116,12 @@ nav .fa {
 .star-rating i {
     cursor: pointer;
     padding: 0 5px;
+    transition: color 0.2s ease;
 }
 
 .star-rating i:hover,
-.star-rating i:hover ~ i,
-.star-rating i.selected,
-.star-rating i.selected ~ i {
+.star-rating i.hover,
+.star-rating i.selected {
     color: #f44336;
 }
 

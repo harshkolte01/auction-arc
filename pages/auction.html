@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-    
 <head>
     <script src="https://unpkg.com/uuid@latest/dist/umd/uuid.min.js"></script>
     <meta charset="UTF-8">
@@ -33,14 +32,60 @@
             <i class="fa fa-bars" onclick="showMenu()"></i> 
         </nav>
         
-        <!-- Search Bar Addition -->
-        <div class="search-container">
-            <form id="searchForm" onsubmit="return false;">
-                <input type="text" id="searchInput" placeholder="Search auctions..." class="search-input">
-                <button type="submit" class="search-button">
-                    <i class="fa fa-search"></i>
-                </button>
-            </form>
+        <div class="filter-search-container">
+            <!-- Search Bar -->
+            <div class="search-container">
+                <form id="searchForm" onsubmit="return false;">
+                    <input type="text" id="searchInput" placeholder="Search auctions..." class="search-input">
+                    <button type="submit" class="search-button">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </form>
+            </div>
+            <!-- Advanced Filter -->
+            <div class="filter-container">
+                <button id="toggleFilter" class="filter-button">Filters <i class="fa fa-filter"></i></button>
+                <div id="filterPanel" class="filter-panel" style="display: none;">
+                    <div class="filter-group">
+                        <label for="sortPrice">Sort by Price:</label>
+                        <select id="sortPrice">
+                            <option value="">Select</option>
+                            <option value="lowToHigh">Low to High</option>
+                            <option value="highToLow">High to Low</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="priceRange">Price Range Slider:</label>
+                        <input type="range" id="priceRange" min="0" max="10000" value="10000">
+                        <span id="priceValue">Up to $10000</span>
+                    </div>
+                    <div class="filter-group">
+                        <label>Price Range:</label>
+                        <div class="price-range-options">
+                            <label><input type="radio" name="priceRangeRadio" value="0-50"> $0 - $50</label>
+                            <label><input type="radio" name="priceRangeRadio" value="50-100"> $50 - $100</label>
+                            <label><input type="radio" name="priceRangeRadio" value="100-200"> $100 - $200</label>
+                            <label><input type="radio" name="priceRangeRadio" value="200-500"> $200 - $500</label>
+                            <label><input type="radio" name="priceRangeRadio" value="500+"> $500+</label>
+                            <label><input type="radio" name="priceRangeRadio" value="all" checked> All</label>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="category">Category:</label>
+                        <select id="category">
+                            <option value="">Select a category</option>
+                            <option value="Video Game">Video Game</option>
+                            <option value="Outdoor Game">Outdoor Game</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Toys">Toys</option>
+                            <option value="Cars">Cars</option>
+                            <option value="Music">Music</option>
+                        </select>
+                    </div>
+                    <button id="applyFilters" class="apply-filter-button">Apply Filters</button>
+                </div>
+            </div>
         </div>
 
         <div class="auction-grid" id="auctionGrid">
@@ -55,5 +100,6 @@
     <script type="module" src="../jsfiles/index.js"></script>
     <script type="module" src="../jsfiles/logout.js"></script>
     <script type="module" src="../jsfiles/rolebasedaccess.js"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'939eddd418da6735',t:'MTc0NjI2NTk1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>

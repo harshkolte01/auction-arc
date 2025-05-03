@@ -34,15 +34,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Star rating functionality
     stars.forEach(star => {
         star.addEventListener('click', () => {
-            const rating = star.getAttribute('data-rating');
+            const rating = parseInt(star.getAttribute('data-rating'));
             ratingInput.value = rating;
             stars.forEach(s => {
-                if (s.getAttribute('data-rating') <= rating) {
-                    s.classList.add('selected');
-                } else {
-                    s.classList.remove('selected');
-                }
+                s.classList.toggle('selected', parseInt(s.getAttribute('data-rating')) <= rating);
             });
+        });
+
+        // Hover effect for better UX
+        star.addEventListener('mouseover', () => {
+            const rating = parseInt(star.getAttribute('data-rating'));
+            stars.forEach(s => {
+                s.classList.toggle('hover', parseInt(s.getAttribute('data-rating')) <= rating);
+            });
+        });
+
+        star.addEventListener('mouseout', () => {
+            stars.forEach(s => s.classList.remove('hover'));
         });
     });
 
