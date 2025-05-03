@@ -192,3 +192,15 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault(); // Prevent form submission
     });
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+    const toggleFilterButton = document.getElementById("toggleFilter");
+    const filterPanel = document.getElementById("filterPanel");
+    const applyFiltersButton = document.getElementById("applyFilters");
+
+
+    // Close filter panel when "Apply Filters" is clicked
+    applyFiltersButton.addEventListener("click", () => {
+        filterPanel.style.display = "none";
+    });
+});
