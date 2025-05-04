@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterPanel = document.getElementById('filterPanel');
     const sortPrice = document.getElementById('sortPrice');
     const category = document.getElementById('category');
+    const auctionStatus = document.getElementById('auctionStatus');
     const applyFilters = document.getElementById('applyFilters');
     let currentUserType = null;
     let allProducts = {}; // Store all products for filtering
@@ -136,29 +137,43 @@ document.addEventListener('DOMContentLoaded', () => {
             const searchTerm = searchInput.value.toLowerCase().trim();
             const sortOrder = sortPrice.value;
             const selectedCategory = category.value;
+            const selectedAuctionStatus = auctionStatus.value;
             const priceRangeRadio = document.querySelector('input[name="priceRangeRadio"]:checked');
             const selectedPriceRange = priceRangeRadio ? priceRangeRadio.value : 'all';
 
-            console.log('Filter inputs:', { searchTerm, sortOrder, selectedCategory, selectedPriceRange }); // Debug: Log filter inputs
+            console.log('Filter inputs:', { searchTerm, sortOrder, selectedCategory, selectedAuctionStatus, selectedPriceRange }); // Debug: Log filter inputs
 
             let filteredProducts = Object.entries(allProducts).filter(([productId, product]) => {
+                // Search filter
                 const matchesSearch = product.productName.toLowerCase().includes(searchTerm) || 
                                      product.category.toLowerCase().includes(searchTerm);
+                // Category filter
                 const matchesCategory = !selectedCategory || product.category === selectedCategory;
-                const price = parseFloat(product.startingPrice);
+                // Price filter
+                const price = parseFloat(product.startingPrice) || 0;
                 let matchesPrice = true;
                 if (selectedPriceRange !== 'all') {
                     const [min, max] = selectedPriceRange.split('-').map(Number);
                     matchesPrice = (!min || price >= min) && (!max || price <= max);
                 }
-                return matchesSearch && matchesCategory && matchesPrice;
+                // Auction status filter
+                let matchesStatus = true;
+                if (selectedAuctionStatus === 'notStarted') {
+                    matchesStatus = !product.bidStarted && !auctionResults[productId];
+                } else if (selectedAuctionStatus === 'ended') {
+                    matchesStatus = !!auctionResults[productId];
+                }
+
+                return matchesSearch && matchesCategory && matchesPrice && matchesStatus;
             });
 
             // Sort products
-            if (sortOrder === 'lowToHigh') {
-                filteredProducts.sort((a, b) => parseFloat(a[1].startingPrice) - parseFloat(b[1].startingPrice));
-            } else if (sortOrder === 'highToLow') {
-                filteredProducts.sort((a, b) => parseFloat(b[1].startingPrice) - parseFloat(b[1].startingPrice));
+            if (sortOrder === 'lowToHigh' || sortOrder === 'highToLow') {
+                filteredProducts.sort((a, b) => {
+                    const priceA = parseFloat(a[1].startingPrice) || 0;
+                    const priceB = parseFloat(b[1].startingPrice) || 0;
+                    return sortOrder === 'lowToHigh' ? priceA - priceB : priceB - priceA;
+                });
             }
 
             console.log('Filtered products:', filteredProducts); // Debug: Log filtered products
@@ -185,9 +200,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'auction-item';
             itemDiv.innerHTML = `
-                <img src="${product.productImageURL}" alt="${product.productName}">
+                <img src="${product.productImageURL || 'https://via.placeholder.com/150'}" alt="${product.productName}">
                 <h3>${product.productName}</h3>
-                <p>Starting Price: $${product.startingPrice}</p>
+                <p>Starting Price: $${parseFloat(product.startingPrice) || 'N/A'}</p>
                 <p>Category: ${product.category}</p>
                 <p>Total Bid Time: ${product.bidTimeValue}</p>
                 ${
@@ -255,7 +270,11 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.addEventListener('input', applyFilter);
     sortPrice.addEventListener('change', applyFilter);
     category.addEventListener('change', applyFilter);
-    applyFilters.addEventListener('click', applyFilter);
+    auctionStatus.addEventListener('change', applyFilter);
+    applyFilters.addEventListener('click', () => {
+        applyFilter();
+        filterPanel.style.display = 'none'; // Close filter panel
+    });
     document.querySelectorAll('input[name="priceRangeRadio"]').forEach(radio => {
         radio.addEventListener('change', applyFilter);
     });
