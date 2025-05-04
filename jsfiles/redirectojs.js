@@ -1,7 +1,7 @@
 function redirectToSignin(event) {
     event.preventDefault(); // Prevent the default link behavior
     alert("Please sign in or sign up to access this page.");
-    window.location.href = "signin.html"; // Redirect to the sign-in page
+    window.location.href = "pages/signin.html"; // Redirect to the sign-in page
 }
 
 // Attach event listeners to the links
