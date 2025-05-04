@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleFilter = document.getElementById('toggleFilter');
     const filterPanel = document.getElementById('filterPanel');
     const sortPrice = document.getElementById('sortPrice');
+    const priceRange = document.getElementById('priceRange');
+    const priceValue = document.getElementById('priceValue');
     const category = document.getElementById('category');
     const applyFilters = document.getElementById('applyFilters');
     let currentUserType = null;
@@ -26,6 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Toggle filter panel visibility
     toggleFilter.addEventListener('click', () => {
         filterPanel.style.display = filterPanel.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Update price range display
+    priceRange.addEventListener('input', () => {
+        priceValue.textContent = `Up to $${priceRange.value}`;
     });
 
     // Fetch user type
@@ -126,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyFilter() {
         const searchTerm = searchInput.value.toLowerCase().trim();
         const sortOrder = sortPrice.value;
+        const maxPrice = parseFloat(priceRange.value);
         const selectedCategory = category.value;
         const selectedPriceRange = document.querySelector('input[name="priceRangeRadio"]:checked').value;
 
@@ -138,6 +146,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (selectedPriceRange !== 'all') {
                 const [min, max] = selectedPriceRange.split('-').map(Number);
                 matchesPrice = (!min || price >= min) && (!max || price <= max);
+            } else {
+                matchesPrice = price <= maxPrice;
             }
             return matchesSearch && matchesCategory && matchesPrice;
         });
@@ -232,6 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Search and filter event listeners
     searchInput.addEventListener('input', applyFilter);
     sortPrice.addEventListener('change', applyFilter);
+    priceRange.addEventListener('change', applyFilter);
     category.addEventListener('change', applyFilter);
     applyFilters.addEventListener('click', applyFilter);
     document.querySelectorAll('input[name="priceRangeRadio"]').forEach(radio => {
