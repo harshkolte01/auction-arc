@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentUserType = null;
     let allProducts = {}; // Store all products for filtering
     let auctionResults = {}; // Store auction results
+    const notifiedBids = new Set(); // Track notified bid starts
 
     // Toggle filter panel visibility
     toggleFilter.addEventListener('click', () => {
@@ -50,16 +51,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function listenForBidStart() {
         const productsRef = ref(db, 'products');
+        let previousProducts = {}; // Store previous state of products
+
         onValue(productsRef, (snapshot) => {
             if (snapshot.exists()) {
                 const products = snapshot.val();
                 Object.entries(products).forEach(([productId, product]) => {
-                    // Check if bid just started (bidStarted is true and was previously false or undefined)
-                    if (product.bidStarted && !allProducts[productId]?.bidStarted) {
+                    // Skip if auction has ended
+                    if (auctionResults[productId]) {
+                        return;
+                    }
+                    // Check if bid just started and hasn't been notified
+                    if (
+                        product.bidStarted &&
+                        !previousProducts[productId]?.bidStarted &&
+                        !notifiedBids.has(productId)
+                    ) {
                         showNotification(`Bidding has started for "${product.productName}"!`);
+                        notifiedBids.add(productId); // Mark as notified
                     }
                 });
-                allProducts = products; // Update allProducts to track bidStarted state
+                previousProducts = { ...products }; // Update previous state
             }
         }, (error) => {
             console.error('Error listening for bid start:', error);
@@ -138,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sortOrder === 'lowToHigh') {
             filteredProducts.sort((a, b) => parseFloat(a[1].startingPrice) - parseFloat(b[1].startingPrice));
         } else if (sortOrder === 'highToLow') {
-            filteredProducts.sort((a, b) => parseFloat(b[1].startingPrice) - parseFloat(b[1].startingPrice));
+            filteredProducts.sort((a, b) => parseFloat(b[1].startingPrice) - parseFloat(a[1].startingPrice));
         }
 
         displayProducts(Object.fromEntries(filteredProducts));
