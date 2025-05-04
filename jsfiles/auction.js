@@ -10,8 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleFilter = document.getElementById('toggleFilter');
     const filterPanel = document.getElementById('filterPanel');
     const sortPrice = document.getElementById('sortPrice');
-    const priceRange = document.getElementById('priceRange');
-    const priceValue = document.getElementById('priceValue');
     const category = document.getElementById('category');
     const applyFilters = document.getElementById('applyFilters');
     let currentUserType = null;
@@ -30,28 +28,28 @@ document.addEventListener('DOMContentLoaded', () => {
         filterPanel.style.display = filterPanel.style.display === 'none' ? 'block' : 'none';
     });
 
-    // Update price range display
-    priceRange.addEventListener('input', () => {
-        priceValue.textContent = `Up to $${priceRange.value}`;
-    });
-
     // Fetch user type
     onAuthStateChanged(auth, (user) => {
+        console.log('Auth state changed, user:', user?.uid); // Debug: Log user ID
         if (user) {
             const userRef = ref(db, `users/${user.uid}`);
             get(userRef).then((snapshot) => {
                 if (snapshot.exists()) {
                     currentUserType = snapshot.val().userType;
+                    console.log('User type:', currentUserType); // Debug: Log user type
                     loadProducts();
                     if (currentUserType === 'Buyer') {
                         listenForBidStart(); // Listen for bid start notifications for buyers
                     }
+                } else {
+                    console.error('User data not found for UID:', user.uid);
                 }
             }).catch((error) => {
                 console.error('Error fetching user type:', error);
             });
         } else {
             console.error('No user is signed in.');
+            loadProducts(); // Load products even if no user is signed in
         }
     });
 
@@ -113,12 +111,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fetch auction results in real-time
         onValue(resultsRef, (snapshot) => {
             auctionResults = snapshot.exists() ? snapshot.val() : {};
+            console.log('Auction results:', auctionResults); // Debug: Log auction results
             // Fetch products in real-time
             onValue(productsRef, (snapshot) => {
                 if (snapshot.exists()) {
                     allProducts = snapshot.val();
+                    console.log('Products loaded:', allProducts); // Debug: Log products
                     applyFilter(); // Apply filters to display products
                 } else {
+                    console.log('No products available');
                     auctionGrid.innerHTML = '<p>No products available.</p>';
                 }
             }, (error) => {
@@ -131,39 +132,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function applyFilter() {
-        const searchTerm = searchInput.value.toLowerCase().trim();
-        const sortOrder = sortPrice.value;
-        const maxPrice = parseFloat(priceRange.value);
-        const selectedCategory = category.value;
-        const selectedPriceRange = document.querySelector('input[name="priceRangeRadio"]:checked').value;
+        try {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const sortOrder = sortPrice.value;
+            const selectedCategory = category.value;
+            const priceRangeRadio = document.querySelector('input[name="priceRangeRadio"]:checked');
+            const selectedPriceRange = priceRangeRadio ? priceRangeRadio.value : 'all';
 
-        let filteredProducts = Object.entries(allProducts).filter(([productId, product]) => {
-            const matchesSearch = product.productName.toLowerCase().includes(searchTerm) || 
-                                 product.category.toLowerCase().includes(searchTerm);
-            const matchesCategory = !selectedCategory || product.category === selectedCategory;
-            const price = parseFloat(product.startingPrice);
-            let matchesPrice = true;
-            if (selectedPriceRange !== 'all') {
-                const [min, max] = selectedPriceRange.split('-').map(Number);
-                matchesPrice = (!min || price >= min) && (!max || price <= max);
-            } else {
-                matchesPrice = price <= maxPrice;
+            console.log('Filter inputs:', { searchTerm, sortOrder, selectedCategory, selectedPriceRange }); // Debug: Log filter inputs
+
+            let filteredProducts = Object.entries(allProducts).filter(([productId, product]) => {
+                const matchesSearch = product.productName.toLowerCase().includes(searchTerm) || 
+                                     product.category.toLowerCase().includes(searchTerm);
+                const matchesCategory = !selectedCategory || product.category === selectedCategory;
+                const price = parseFloat(product.startingPrice);
+                let matchesPrice = true;
+                if (selectedPriceRange !== 'all') {
+                    const [min, max] = selectedPriceRange.split('-').map(Number);
+                    matchesPrice = (!min || price >= min) && (!max || price <= max);
+                }
+                return matchesSearch && matchesCategory && matchesPrice;
+            });
+
+            // Sort products
+            if (sortOrder === 'lowToHigh') {
+                filteredProducts.sort((a, b) => parseFloat(a[1].startingPrice) - parseFloat(b[1].startingPrice));
+            } else if (sortOrder === 'highToLow') {
+                filteredProducts.sort((a, b) => parseFloat(b[1].startingPrice) - parseFloat(b[1].startingPrice));
             }
-            return matchesSearch && matchesCategory && matchesPrice;
-        });
 
-        // Sort products
-        if (sortOrder === 'lowToHigh') {
-            filteredProducts.sort((a, b) => parseFloat(a[1].startingPrice) - parseFloat(b[1].startingPrice));
-        } else if (sortOrder === 'highToLow') {
-            filteredProducts.sort((a, b) => parseFloat(b[1].startingPrice) - parseFloat(b[1].startingPrice));
+            console.log('Filtered products:', filteredProducts); // Debug: Log filtered products
+            displayProducts(Object.fromEntries(filteredProducts));
+        } catch (error) {
+            console.error('Error in applyFilter:', error);
+            auctionGrid.innerHTML = '<p>Error applying filters.</p>';
         }
-
-        displayProducts(Object.fromEntries(filteredProducts));
     }
 
     function displayProducts(products) {
         auctionGrid.innerHTML = ''; // Clear existing items
+        console.log('Displaying products:', products); // Debug: Log products to display
+        if (Object.keys(products).length === 0) {
+            auctionGrid.innerHTML = '<p>No products match the current filters.</p>';
+            return;
+        }
         for (const productId in products) {
             const product = products[productId];
             const isAuctionEnded = !!auctionResults[productId]; // Check if productId exists in auctionResults
@@ -242,7 +254,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Search and filter event listeners
     searchInput.addEventListener('input', applyFilter);
     sortPrice.addEventListener('change', applyFilter);
-    priceRange.addEventListener('change', applyFilter);
     category.addEventListener('change', applyFilter);
     applyFilters.addEventListener('click', applyFilter);
     document.querySelectorAll('input[name="priceRangeRadio"]').forEach(radio => {
