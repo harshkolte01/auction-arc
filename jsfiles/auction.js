@@ -17,7 +17,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentUserType = null;
     let allProducts = {}; // Store all products for filtering
     let auctionResults = {}; // Store auction results
-    const notifiedBids = new Set(); // Track notified bid starts
+    // Load notified bids from localStorage or initialize as empty Set
+    const notifiedBids = new Set(JSON.parse(localStorage.getItem('notifiedBids') || '[]'));
+
+    // Save notifiedBids to localStorage whenever it changes
+    function saveNotifiedBids() {
+        localStorage.setItem('notifiedBids', JSON.stringify([...notifiedBids]));
+    }
 
     // Toggle filter panel visibility
     toggleFilter.addEventListener('click', () => {
@@ -51,24 +57,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function listenForBidStart() {
         const productsRef = ref(db, 'products');
-        let previousProducts = {}; // Store previous state of products
+        let previousProducts = { ...allProducts }; // Initialize with current products
 
         onValue(productsRef, (snapshot) => {
             if (snapshot.exists()) {
                 const products = snapshot.val();
                 Object.entries(products).forEach(([productId, product]) => {
-                    // Skip if auction has ended
-                    if (auctionResults[productId]) {
+                    // Skip if auction has ended or already notified
+                    if (auctionResults[productId] || notifiedBids.has(productId)) {
                         return;
                     }
-                    // Check if bid just started and hasn't been notified
+                    // Check if bid just started
                     if (
                         product.bidStarted &&
-                        !previousProducts[productId]?.bidStarted &&
-                        !notifiedBids.has(productId)
+                        !previousProducts[productId]?.bidStarted
                     ) {
                         showNotification(`Bidding has started for "${product.productName}"!`);
                         notifiedBids.add(productId); // Mark as notified
+                        saveNotifiedBids(); // Save to localStorage
                     }
                 });
                 previousProducts = { ...products }; // Update previous state
@@ -150,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sortOrder === 'lowToHigh') {
             filteredProducts.sort((a, b) => parseFloat(a[1].startingPrice) - parseFloat(b[1].startingPrice));
         } else if (sortOrder === 'highToLow') {
-            filteredProducts.sort((a, b) => parseFloat(b[1].startingPrice) - parseFloat(a[1].startingPrice));
+            filteredProducts.sort((a, b) => parseFloat(b[1].startingPrice) - parseFloat(b[1].startingPrice));
         }
 
         displayProducts(Object.fromEntries(filteredProducts));
