@@ -35,7 +35,10 @@ document.addEventListener('DOMContentLoaded', () => {
             get(userRef).then((snapshot) => {
                 if (snapshot.exists()) {
                     currentUserType = snapshot.val().userType;
-                    loadProducts(); // Load products after determining the user type
+                    loadProducts();
+                    if (currentUserType === 'Buyer') {
+                        listenForBidStart(); // Listen for bid start notifications for buyers
+                    }
                 }
             }).catch((error) => {
                 console.error('Error fetching user type:', error);
@@ -44,6 +47,46 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('No user is signed in.');
         }
     });
+
+    function listenForBidStart() {
+        const productsRef = ref(db, 'products');
+        onValue(productsRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const products = snapshot.val();
+                Object.entries(products).forEach(([productId, product]) => {
+                    // Check if bid just started (bidStarted is true and was previously false or undefined)
+                    if (product.bidStarted && !allProducts[productId]?.bidStarted) {
+                        showNotification(`Bidding has started for "${product.productName}"!`);
+                    }
+                });
+                allProducts = products; // Update allProducts to track bidStarted state
+            }
+        }, (error) => {
+            console.error('Error listening for bid start:', error);
+        });
+    }
+
+    function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'bid-notification';
+        notification.innerHTML = `
+            <span>${message}</span>
+            <button class="close-notification">×</button>
+        `;
+        document.body.appendChild(notification);
+
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 500); // Match fade-out duration
+        }, 5000);
+
+        // Close button functionality
+        notification.querySelector('.close-notification').addEventListener('click', () => {
+            notification.classList.add('fade-out');
+            setTimeout(() => notification.remove(), 500);
+        });
+    }
 
     function loadProducts() {
         const productsRef = ref(db, 'products');
@@ -95,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sortOrder === 'lowToHigh') {
             filteredProducts.sort((a, b) => parseFloat(a[1].startingPrice) - parseFloat(b[1].startingPrice));
         } else if (sortOrder === 'highToLow') {
-            filteredProducts.sort((a, b) => parseFloat(b[1].startingPrice) - parseFloat(a[1].startingPrice));
+            filteredProducts.sort((a, b) => parseFloat(b[1].startingPrice) - parseFloat(b[1].startingPrice));
         }
 
         displayProducts(Object.fromEntries(filteredProducts));
@@ -190,17 +233,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     searchForm.addEventListener('submit', (e) => {
         e.preventDefault(); // Prevent form submission
-    });
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-    const toggleFilterButton = document.getElementById("toggleFilter");
-    const filterPanel = document.getElementById("filterPanel");
-    const applyFiltersButton = document.getElementById("applyFilters");
-
-
-    // Close filter panel when "Apply Filters" is clicked
-    applyFiltersButton.addEventListener("click", () => {
-        filterPanel.style.display = "none";
     });
 });

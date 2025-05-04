@@ -108,12 +108,9 @@ nav .fa {
 
 .search-button:hover {
   background: #0056b3;
-  background-color: #0a0a29;
-  color: #3498db;
-  box-shadow: 0 0 3px #0a0a29, 0 0 20px #3498db;
 }
 
-.search-button {
+.search-button i {
   font-size: 16px;
 }
 
@@ -137,10 +134,6 @@ nav .fa {
 
 .filter-button:hover {
   background: #0056b3;
-  font-weight: bold;
-  background-color: #0a0a29;
-  color: #3498db;
-  box-shadow: 0 0 3px #0a0a29, 0 0 20px #3498db;
 }
 
 .filter-panel {
@@ -169,7 +162,7 @@ nav .fa {
 .filter-group input[type="range"] {
   width: 100%;
   padding: 8px;
-  border: 1px solid #007bff;
+  border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
 }
@@ -201,7 +194,6 @@ nav .fa {
 .apply-filter-button:hover {
   background: #0056b3;
 }
-
 
 .auction-grid {
   display: grid;
@@ -273,7 +265,7 @@ nav .fa {
   color: #0056b3;
 }
 
-.auction-item button, .apply-filter-button {
+.auction-item button {
   background-color: #3498db;
   color: #ffffff;
   padding: 10px 20px;
@@ -290,7 +282,7 @@ nav .fa {
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
 }
 
-.auction-item button::before, .apply-filter-button::before {
+.auction-item button::before {
   content: "";
   position: absolute;
   top: 50%;
@@ -303,35 +295,17 @@ nav .fa {
   border-radius: 50%;
 }
 
-.auction-item button:hover::before, .apply-filter-button:hover::before {
+.auction-item button:hover::before {
   transform: translate(-50%, -50%) scale(1);
 }
 
-.auction-item button:hover, .apply-filter-button:hover {
+.auction-item button:hover {
   letter-spacing: 0.15em;
   background-color: #0a0a29;
   color: #3498db;
   font-weight: bold;
   box-shadow: 0 0 10px #0a0a29, 0 0 20px #3498db;
   transform: translateY(-2px) scale(1.00);
-}
-
-.filter-button {
-  /* Add these transition properties to the base button style */
-  transition: all 0.2s ease-out;
-}
-
-.filter-button:active {
-  background-color: #0a0a29;
-  color: #3498db;
-  box-shadow: 0 0 10px #0a0a29, 0 0 20px #3498db;
-  transition: all 0.1s ease-out; /* Faster transition for active state */
-}
-
-/* Optional: Add hover state for better interactivity */
-.filter-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
 }
 
 @keyframes traveling-glow {
@@ -354,6 +328,69 @@ nav .fa {
   color: #3bbdde;
   box-shadow: 0 2px #1a5e85;
   transform: translateY(3px);
+}
+
+.bid-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #007bff;
+  color: #fff;
+  padding: 15px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 300px;
+  z-index: 1000;
+  animation: slide-in 0.5s ease;
+}
+
+.bid-notification.fade-out {
+  animation: slide-out 0.5s ease forwards;
+}
+
+.bid-notification span {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.close-notification {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  margin-left: 10px;
+  padding: 0;
+}
+
+.close-notification:hover {
+  color: #f44336;
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
 }
 
 @media(max-width: 700px) {
@@ -413,5 +450,12 @@ nav .fa {
   .auction-ended-icon {
     margin-right: 0;
     margin-bottom: 5px;
+  }
+
+  .bid-notification {
+    top: 10px;
+    right: 10px;
+    max-width: 90%;
+    padding: 10px 15px;
   }
 }

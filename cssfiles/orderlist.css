@@ -62,30 +62,54 @@ nav .fa {
 
 /* Order list container */
 #orderListContainer {
-    padding: 20px; /* Add padding around the container */
-    margin-top: 80px; /* Ensure the container is pushed down below the navbar */
+    padding: 20px;
+    margin-top: 80px;
+    max-height: 60vh; /* Set a fixed height for the container */
+    overflow-y: auto; /* Enable vertical scrollbar */
+    background: rgba(255, 255, 255, 0.05); /* Slight background for contrast */
+    border-radius: 8px; /* Rounded corners for aesthetics */
+}
+
+/* Custom scrollbar styling */
+#orderListContainer::-webkit-scrollbar {
+    width: 8px;
+}
+
+#orderListContainer::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+#orderListContainer::-webkit-scrollbar-thumb {
+    background: #f44336;
+    border-radius: 8px;
+}
+
+#orderListContainer::-webkit-scrollbar-thumb:hover {
+    background: #d32f2f;
 }
 
 /* Order item styling */
 .order-item {
-    background-color: rgba(255, 255, 255, 0.1); /* Transparent background */
-    color: #fff; /* White text for visibility */
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
     padding: 15px;
     margin-bottom: 10px;
     border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .order-item h3 {
     margin: 0;
     font-size: 18px;
-    color: #fff; /* White heading text */
+    color: #fff;
 }
 
 .order-item p {
     margin: 5px 0;
-    color: #ccc; /* Light grey for paragraph text */
+    color: #ccc;
 }
+
 .buy-button {
     background-color: #28a745;
     color: white;
@@ -99,6 +123,7 @@ nav .fa {
 .buy-button:hover {
     background-color: #218838;
 }
+
 /* Responsive adjustments */
 @media(max-width: 700px) {
     .nav-links {
@@ -119,6 +144,11 @@ nav .fa {
         margin: 10px;
         font-size: 22px;
         cursor: pointer;
-      }
-    
+    }
+
+    #orderListContainer {
+        max-height: 70vh; /* Slightly taller on mobile for better usability */
+        padding: 15px;
+        margin-top: 60px;
+    }
 }
